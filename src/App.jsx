@@ -1,88 +1,3 @@
-// import axios from "axios"
-// import './App.css'
-// import { useEffect, useState } from "react";
-
-// function App() {
-
-
-//   const [data,setdata] = useState()
-//   const [Loading,setLoading] = useState(true)
-//   const [Error,setError] = useState("")
-
-//   useEffect(()=> {
-
-//     axios.get(
-//       {
-//         "Title": "Spider-Man: No Way Home",
-//         "Year": "2021",
-//         "imdbID": "tt10872600",
-//         "Type": "movie",
-//         "Poster": "https://m.media-amazon.com/images/M/MV5BMmFiZGZjMmEtMTA0Ni00MzA2LTljMTYtZGI2MGJmZWYzZTQ2XkEyXkFqcGc@._V1_SX300.jpg"
-//     },
-
-//   //  "api-fulfill.dataexchange.us-east-1.amazonaws.com/v1"
-//     )
-//     .then((response)=>{
-//         setdata(response.data)
-//         setLoading(false)
-//     })
-//     .catch((Error)=>{
-//       setError("TELAH TERJADI ERROR 404")
-//       setLoading(false)
-//     })
-
-//   },[])
-//   return (
-//     <>
-//       <body className='backcolor'>
-
-//         <div>
-
-//           {/* Judul */}
-
-//           <div className='ContainerMovieCollection'>
-//             <p>Movie Collection</p>
-//           </div>
-
-//           {/* Tempat pencarian */}
-
-//           <div>
-//             <input
-//               className='search'
-//               placeholder='Please type the movie here'
-//               type='search'></input>
-
-
-//             {/* button search */}
-
-//             <button className='buttonSearch' type='submit'>search</button>
-//           </div>
-
-
-
-//           {/* Gambar */}
-          
-//           <div>
-//           {Loading && <p>Loading...</p>}
-//           {Error && <p>{Error}</p>}       
-//           </div>
-          
-//           {/* {data.map(item => (
-//           <img key={item.id}>
-//             <h3>{item.title}</h3>
-//             <p>{item.body}</p>
-//           </img>
-//         ))} */}
-
-
-//         </div>
-
-//       </body>
-//     </>
-//   )
-// }
-
-// export default App;
 
 
 import { useState, useEffect, useRef } from 'react';
@@ -97,25 +12,40 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Button animations
+  // Set default GSAP tween settings to make animations smoother
+  gsap.defaults({
+    duration: 0.3, // Default duration for all animations
+    ease: 'power2.out', // Default easing for all animations
+  });
+
+  // Button animations with isTweening and killTweensOf to prevent overlapping animations
   useEffect(() => {
     const button = buttonRef.current;
+    const ctx = gsap.context(() => {
+      // Hover animation
+      button.addEventListener('mouseenter', () => {
+        if (!gsap.isTweening(button)) {
+          gsap.to(button, { scale: 1.2 });
+        }
+      });
     
-    // Hover animation
-    button.addEventListener('mouseenter', () => {
-      gsap.to(button, { scale: 1.2, duration: 0.2 });
-    });
-    
-    button.addEventListener('mouseleave', () => {
-      gsap.to(button, { scale: 1, duration: 0.2 });
-    });
+      button.addEventListener('mouseleave', () => {
+        if (!gsap.isTweening(button)) {
+          gsap.to(button, { scale: 1 });
+        }
+      });
 
-    // Click animation
-    button.addEventListener('click', () => {
-      const tl = gsap.timeline();
-      tl.to(button, { scale: 0.7, duration: 0.1 })
-        .to(button, { scale: 1, duration: 0.2 });
-    });
+      // Click animation
+      button.addEventListener('click', () => {
+        if (!gsap.isTweening(button)) {
+          const tl = gsap.timeline();
+          tl.to(button, { scale: 0.7, duration: 0.1 })
+            .to(button, { scale: 1, duration: 0.2 });
+        }
+      });
+    }, buttonRef);  // The context ensures proper cleanup on unmount
+
+    return () => ctx.revert(); // Cleanup GSAP context when the component unmounts
   }, []);
 
   // Card animations
@@ -123,9 +53,7 @@ function App() {
     gsap.from('.movie-card', {
       y: -50,
       opacity: 0,
-      duration: 0.8,
       stagger: 0.2,
-      ease: 'power2.out'
     });
   }, [movies]);
 
@@ -145,10 +73,10 @@ function App() {
         setMovies(response.data.movies);
       } else {
         setMovies([]);
-        setError('No movies found.');
+        setError('No movies.');
       }
     } catch (err) {
-      setError('Error fetching movies. Please try again.');
+      setError('Error, Please try again. 404');
     } finally {
       setLoading(false);
     }
@@ -160,11 +88,14 @@ function App() {
 
   return (
     <>
+
+    <h2 style={{fontStyle:"italic",fontSize:"50px"}}>Movie Collection</h2>
       <input
+        style={{marginBottom:'50px'}}
         type="text" 
         value={searchTerm} 
         onChange={(e) => setSearchTerm(e.target.value)} 
-        placeholder="Search for a movie..." 
+        placeholder="Search for a movie bro............................" 
       />
       <button ref={buttonRef} onClick={handleSearch}>Search</button>
       {loading && <p>Loading...</p>}
